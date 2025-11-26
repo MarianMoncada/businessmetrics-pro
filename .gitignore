@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+
+# Airflow
+airflow/logs/*
+!airflow/logs/.gitkeep
+airflow-webserver.pid
+
+# Docker
+*.log
+
+# Database
+*.sql.backup
+database/backup/*.sql
+*.dump
+
+# Secrets
+*.env
+.env.local
+security/passwords.txt
+security/keys/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Kubernetes
+*.key
+*.crt

@@ -1,0 +1,226 @@
+# ============================================
+# Airflow Deployment para Kubernetes
+# ============================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airflow-config
+  namespace: businessmetrics
+data:
+  AIRFLOW__CORE__EXECUTOR: "LocalExecutor"
+  AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+  AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+  AIRFLOW__CORE__DAGS_FOLDER: "/opt/airflow/dags"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: airflow-secret
+  namespace: businessmetrics
+type: Opaque
+stringData:
+  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "postgresql+psycopg2://admin:Admin123!Secure@postgres-service:5432/airflow"
+  AIRFLOW_ADMIN_USERNAME: "admin"
+  AIRFLOW_ADMIN_PASSWORD: "admin"
+
+---
+# PersistentVolumeClaim para DAGs
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: airflow-dags-pvc
+  namespace: businessmetrics
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+
+---
+# PersistentVolumeClaim para Logs
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: airflow-logs-pvc
+  namespace: businessmetrics
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+# Init Job - Inicializar BD de Airflow
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: airflow-init
+  namespace: businessmetrics
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: airflow-init
+        image: apache/airflow:2.8.0
+        command:
+        - bash
+        - -c
+        - |
+          airflow db init
+          airflow users create \
+            --username admin \
+            --firstname Admin \
+            --lastname User \
+            --role Admin \
+            --email admin@businessmetrics.com \
+            --password admin
+        envFrom:
+        - configMapRef:
+            name: airflow-config
+        - secretRef:
+            name: airflow-secret
+
+---
+# Deployment - Airflow Webserver
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-webserver
+  namespace: businessmetrics
+  labels:
+    app: airflow
+    component: webserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow
+      component: webserver
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: webserver
+    spec:
+      containers:
+      - name: webserver
+        image: apache/airflow:2.8.0
+        command: ["airflow", "webserver"]
+        ports:
+        - containerPort: 8080
+          name: http
+        envFrom:
+        - configMapRef:
+            name: airflow-config
+        - secretRef:
+            name: airflow-secret
+        volumeMounts:
+        - name: dags
+          mountPath: /opt/airflow/dags
+        - name: logs
+          mountPath: /opt/airflow/logs
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: dags
+        persistentVolumeClaim:
+          claimName: airflow-dags-pvc
+      - name: logs
+        persistentVolumeClaim:
+          claimName: airflow-logs-pvc
+
+---
+# Deployment - Airflow Scheduler
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-scheduler
+  namespace: businessmetrics
+  labels:
+    app: airflow
+    component: scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow
+      component: scheduler
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: scheduler
+    spec:
+      containers:
+      - name: scheduler
+        image: apache/airflow:2.8.0
+        command: ["airflow", "scheduler"]
+        envFrom:
+        - configMapRef:
+            name: airflow-config
+        - secretRef:
+            name: airflow-secret
+        volumeMounts:
+        - name: dags
+          mountPath: /opt/airflow/dags
+        - name: logs
+          mountPath: /opt/airflow/logs
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+      volumes:
+      - name: dags
+        persistentVolumeClaim:
+          claimName: airflow-dags-pvc
+      - name: logs
+        persistentVolumeClaim:
+          claimName: airflow-logs-pvc
+
+---
+# Service - Airflow Webserver
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-webserver-service
+  namespace: businessmetrics
+  labels:
+    app: airflow
+    component: webserver
+spec:
+  type: NodePort
+  selector:
+    app: airflow
+    component: webserver
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30808
+    protocol: TCP
+    name: http

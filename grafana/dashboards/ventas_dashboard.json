@@ -1,0 +1,178 @@
+{
+  "dashboard": {
+    "title": "Dashboard de Ventas - BusinessMetrics Pro",
+    "tags": ["ventas", "business"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total de Ventas Hoy",
+        "type": "stat",
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "table",
+            "rawSql": "SELECT COUNT(*) as value FROM ventas.ventas WHERE DATE(fecha_venta) = CURRENT_DATE",
+            "datasource": "BusinessMetrics PostgreSQL"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": 0,
+                  "color": "red"
+                },
+                {
+                  "value": 10,
+                  "color": "yellow"
+                },
+                {
+                  "value": 50,
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Ingresos Totales Hoy",
+        "type": "stat",
+        "gridPos": {
+          "x": 6,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "table",
+            "rawSql": "SELECT COALESCE(SUM(total), 0) as value FROM ventas.ventas WHERE DATE(fecha_venta) = CURRENT_DATE",
+            "datasource": "BusinessMetrics PostgreSQL"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": 0,
+                  "color": "red"
+                },
+                {
+                  "value": 10000,
+                  "color": "yellow"
+                },
+                {
+                  "value": 50000,
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "currencyUSD"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Ventas por Región (Últimos 30 días)",
+        "type": "piechart",
+        "gridPos": {
+          "x": 12,
+          "y": 0,
+          "w": 6,
+          "h": 8
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "table",
+            "rawSql": "SELECT region as metric, COUNT(*) as value FROM ventas.ventas WHERE fecha_venta >= CURRENT_DATE - INTERVAL '30 days' GROUP BY region ORDER BY value DESC",
+            "datasource": "BusinessMetrics PostgreSQL"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Tendencia de Ventas (Últimos 7 días)",
+        "type": "graph",
+        "gridPos": {
+          "x": 0,
+          "y": 4,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "time_series",
+            "rawSql": "SELECT fecha_venta as time, COUNT(*) as value FROM ventas.ventas WHERE fecha_venta >= CURRENT_DATE - INTERVAL '7 days' GROUP BY DATE(fecha_venta), fecha_venta ORDER BY fecha_venta",
+            "datasource": "BusinessMetrics PostgreSQL"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Top 10 Productos Más Vendidos",
+        "type": "table",
+        "gridPos": {
+          "x": 0,
+          "y": 12,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "table",
+            "rawSql": "SELECT p.nombre as \"Producto\", SUM(dv.cantidad) as \"Unidades Vendidas\", SUM(dv.subtotal) as \"Ingresos\" FROM ventas.detalle_ventas dv JOIN inventario.productos p ON dv.producto_id = p.producto_id GROUP BY p.nombre ORDER BY SUM(dv.cantidad) DESC LIMIT 10",
+            "datasource": "BusinessMetrics PostgreSQL"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Rendimiento de Empleados",
+        "type": "bargauge",
+        "gridPos": {
+          "x": 12,
+          "y": 8,
+          "w": 6,
+          "h": 8
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "table",
+            "rawSql": "SELECT e.nombre || ' ' || e.apellido as metric, COUNT(v.venta_id) as value FROM rrhh.empleados e LEFT JOIN ventas.ventas v ON e.empleado_id = v.empleado_id WHERE e.departamento = 'Ventas' GROUP BY e.empleado_id, e.nombre, e.apellido ORDER BY value DESC",
+            "datasource": "BusinessMetrics PostgreSQL"
+          }
+        ]
+      }
+    ],
+    "refresh": "30s",
+    "time": {
+      "from": "now-7d",
+      "to": "now"
+    }
+  }
+}
