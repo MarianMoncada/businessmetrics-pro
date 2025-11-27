@@ -95,29 +95,29 @@ businessmetrics-pro/
 
 ## 🔧 Características Implementadas
 
-### ✅ Administración de BD
+### Administración de BD
 - Roles y usuarios
 - Permisos granulares
 - Gestión de conexiones
 
-### ✅ Espacios Lógicos y Físicos
+### Espacios Lógicos y Físicos
 - Tablespaces personalizados
 - Optimización de almacenamiento
 - Particionamiento de tablas
 
-### ✅ Respaldo y Recuperación
+### Respaldo y Recuperación
 - Respaldos completos automatizados
 - Respaldos incrementales
 - Point-in-Time Recovery (PITR)
 - Respaldos en caliente y frío
 
-### ✅ Monitoreo y Seguridad
+### Monitoreo y Seguridad
 - Dashboards de Grafana
 - Métricas de rendimiento
 - Autenticación y autorización
 - Encriptación de datos
 
-### ✅ Afinación
+### Afinación
 - Índices optimizados
 - Queries optimizadas
 - Configuración del servidor
@@ -147,10 +147,10 @@ kubectl logs -f deployment/airflow-webserver
 docker exec -it postgres psql -U admin -d businessmetrics
 ```
 
-## 👥 Autor
+## Autores
 
-[Tu Nombre] - Proyecto Final Administración de Bases de Datos
+Goudge Moncada Marian, Fajardo Barraza Ana Paloma, Falcón Díaz Ricardo - Proyecto Final Administración de Bases de Datos
 
-## 📄 Licencia
+## Licencia
 
 Este proyecto es de uso académico.
