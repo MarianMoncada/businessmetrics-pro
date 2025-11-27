@@ -1,5 +1,5 @@
 # businessmetrics-pro
-Sistema de Análisis de Métricas de Negocio - Proyecto Final Admin BD
+ Proyecto Final Administración de Bases de Datos
 # 📊 BusinessMetrics Pro
 
 Sistema de Análisis de Métricas de Negocio
@@ -149,7 +149,7 @@ docker exec -it postgres psql -U admin -d businessmetrics
 
 ## Autores
 
-Goudge Moncada Marian, Fajardo Barraza Ana Paloma, Falcón Díaz Ricardo - Proyecto Final Administración de Bases de Datos
+Goudge Moncada Marian, Fajardo Barraza Ana Paloma, Falcón Díaz Ricardo 
 
 ## Licencia
 
