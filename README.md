@@ -2,7 +2,7 @@
 Sistema de Análisis de Métricas de Negocio - Proyecto Final Admin BD
 # 📊 BusinessMetrics Pro
 
-Sistema de Análisis de Métricas de Negocio con PostgreSQL, Docker, Kubernetes, Airflow y Grafana.
+Sistema de Análisis de Métricas de Negocio
 
 ## 🎯 Descripción del Proyecto
 
@@ -31,7 +31,7 @@ BusinessMetrics Pro es un sistema completo de administración y análisis de bas
 - Git
 - Python 3.8+
 
-## 🚀 Instalación Rápida
+## Instalación Rápida
 
 ### 1. Clonar el repositorio
 ```bash
